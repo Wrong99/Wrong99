@@ -1,0 +1,105 @@
+using UnityEngine;
+
+public class PlayerMovement : MonoBehaviour
+{
+    public float moveSpeed = 5f;
+    public float rotateSpeed = 700f;
+
+    private void Update()
+    {
+        // Move forward and backward
+        float moveDirection = Input.GetAxis("Vertical");
+        transform.Translate(Vector3.forward * moveDirection * moveSpeed * Time.deltaTime);
+
+        // Rotate left and right
+        float rotateDirection = Input.GetAxis("Horizontal");
+        transform.Rotate(Vector3.up, rotateDirection * rotateSpeed * Time.deltaTime);
+    }
+}using UnityEngine;
+
+public class PlayerShooting : MonoBehaviour
+{
+    public GameObject bulletPrefab;
+    public Transform bulletSpawn;
+    public float bulletSpeed = 20f;
+    
+    private void Update()
+    {
+        if (Input.GetButtonDown("Fire1")) // Left Mouse Button
+        {
+            Shoot();
+        }
+    }
+    
+    void Shoot()
+    {
+        // Create bullet instance and set its velocity
+        GameObject bullet = Instantiate(bulletPrefab, bulletSpawn.position, bulletSpawn.rotation);
+        Rigidbody rb = bullet.GetComponent<Rigidbody>();
+        rb.velocity = bulletSpawn.forward * bulletSpeed;
+
+        // Destroy the bullet after 2 seconds
+        Destroy(bullet, 2f);
+    }
+}using UnityEngine;
+
+public class Bullet : MonoBehaviour
+{
+    public int damage = 20;
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        // Check if we hit an object with a health script
+        Health targetHealth = collision.gameObject.GetComponent<Health>();
+        if (targetHealth != null)
+        {
+            targetHealth.TakeDamage(damage);
+        }
+        
+        Destroy(gameObject); // Destroy bullet on impact
+    }
+}using UnityEngine;
+
+public class Health : MonoBehaviour
+{
+    public int maxHealth = 100;
+    private int currentHealth;
+
+    private void Start()
+    {
+        currentHealth = maxHealth;
+    }
+
+    public void TakeDamage(int damage)
+    {
+        currentHealth -= damage;
+        
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+    }
+
+    void Die()
+    {
+        // Add death effect here (e.g., particle effect, sound, etc.)
+        Destroy(gameObject);
+    }
+}using Mirror;
+using UnityEngine;
+
+public class PlayerNetwork : NetworkBehaviour
+{
+    public float speed = 5f;
+
+    void Update()
+    {
+        if (!isLocalPlayer) return;
+
+        float moveHorizontal = Input.GetAxis("Horizontal");
+        float moveVertical = Input.GetAxis("Vertical");
+
+        Vector3 movement = new Vector3(moveHorizontal, 0.0f, moveVertical);
+        transform.Translate(movement * speed * Time.deltaTime);
+    }
+}
